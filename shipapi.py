@@ -17,6 +17,9 @@ class api:
         """
         Initialize a new api object. Pass in an API token or omit it to read SHIP_API_TOKEN from
         your environment.
+        
+        Args:
+            token (str): Your API token. Get this from the Administration menu in Ship.
         """
         
         self.API_VERSION = "20151105"
@@ -38,18 +41,17 @@ class api:
         return { "Authorization" : self.token, "Content-Type" : "application/json" }
             
     def me(self):
-        """
-        Return the user represented by the active API token.
-        """        
+        """Return the user represented by the active API token."""        
         return self.users("identifier == $ApiUser")
     
     def active_users(self):
+        """Returns the list of users that have accounts in good standing with the organization
+        (that is, they have not left the organization and have not been marked as inactive
+        by an admin)."""
         return self.users("inactive == NO")
     
     def users(self, predicate=None):
-        """
-        Return the list of users, optionally filtered by a predicate.
-        """
+        """Return the list of users, optionally filtered by a predicate."""
                 
         if predicate is None:
             r = requests.get(self.url("users"), headers=self.headers())
@@ -59,9 +61,7 @@ class api:
         return r.json()
         
     def components(self, predicate=None):
-        """
-        Return the list of components, optionally filtered by a predicate.
-        """
+        """Return the list of components, optionally filtered by a predicate."""
         
         if predicate is None:
             r = requests.get(self.url("components"), headers=self.headers())
@@ -71,9 +71,7 @@ class api:
         return r.json()
     
     def component_parent(self, component):
-        """
-        Returns the component that is the parent of the passed in component.
-        """
+        """Returns the component that is the parent of the passed in component."""
         
         list = self.components("ANY children.identifier = '%s'" % _obj_id(component))
         if len(list) > 0:
@@ -82,24 +80,18 @@ class api:
             return None
     
     def component_children(self, component):
-        """
-        Returns the immediate child components of the passed in component
-        """        
+        """Returns the immediate child components of the passed in component"""        
         return self.components("parent.identifier = '%s'" % _obj_id(component))
         
     def classifications(self):
-        """
-        Returns the list of allowed problem classifications
-        """
+        """Returns the list of allowed problem classifications"""
         
         r = requests.get(self.url("classifications"), headers=self.headers())
         r.raise_for_status()
         return r.json()
     
     def milestones(self, predicate=None):
-        """
-        Return the list of all milestones, optionally filtered by a predicate 
-        """
+        """Return the list of all milestones, optionally filtered by a predicate"""
         
         if predicate is None:
             r = requests.get(self.url("milestones"), headers=self.headers())
@@ -109,6 +101,11 @@ class api:
         return r.json()
         
     def active_milestones(self, within_component=None):
+        """
+        Returns only the milestones that are currently active (that is, those that
+        either omit the start and end dates, or those with start and end dates where
+        start < now < end).
+        """
         if within_component is not None:
             if isinstance(within_component, str):
                 within_component = self.components("identifier = %s" % within_component)[0]
@@ -129,18 +126,14 @@ class api:
             return self.milestones(predicate)
             
     def priorities(self):
-        """
-        Returns the list of priorities
-        """
+        """Returns the list of priorities"""
         
         r = requests.get(self.url("priorities"), headers=self.headers())
         r.raise_for_status()
         return r.json()
     
     def states(self, predicate=None):
-        """
-        Returns the list of states
-        """
+        """Returns the list of states"""
         
         if predicate is None:
             r = requests.get(self.url("states"), headers=self.headers())
@@ -150,21 +143,15 @@ class api:
         return r.json()
         
     def initial_state(self):
-        """
-        Returns the first start state
-        """
+        """Returns the first start state"""
         return self.initial_states()[0]
         
     def initial_states(self):
-        """
-        Returns the list of start states
-        """
+        """Returns the list of start states"""
         return self.states("Initial = YES")
     
     def state_transitions(self, state):
-        """
-        Return the list of valid state transitions from state.
-        """
+        """Return the list of valid state transitions from state."""
         return self.states("ANY PreviousStates.identifier = '%s'" % _obj_id(state))
         
     
@@ -205,6 +192,29 @@ class api:
         """
         
         r = requests.post(self.url("problems"), headers=self.post_headers(), json=problem)
+        r.raise_for_status()
+        return r.json()
+        
+    def update_problem(self, identifier, updates):
+        """
+        Update an existing problem.
+        
+        Args:
+            identifier (int): the problem identifier
+            updates (dict): 
+                A dictionary following the same schema as returned from the problem 
+                method, but only including the fields that you wish to update.
+                
+        Returns:
+            The updated problem as a dict.
+        
+        Example:
+            # Close Problem #1
+            closed = api.states(predicate="name = 'Closed')[0]
+            api.update_problem(1, { "state" : closed })
+        """
+        
+        r = requests.patch(self.url("problems/%d" % identifier), headers=self.post_headers(), json=updates)
         r.raise_for_status()
         return r.json()
         
