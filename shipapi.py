@@ -7,6 +7,7 @@ https://www.realartists.com/docs/api/index.html
 import sys
 import os
 import requests
+from urllib.request import quote
 
 class api:
     """
@@ -44,7 +45,7 @@ class api:
         """Return the user represented by the active API token."""        
         return self.users("identifier == $ApiUser")
     
-    def active_users(self):
+    def users_active(self):
         """Returns the list of users that have accounts in good standing with the organization
         (that is, they have not left the organization and have not been marked as inactive
         by an admin)."""
@@ -100,7 +101,7 @@ class api:
         r.raise_for_status()
         return r.json()
         
-    def active_milestones(self, within_component=None):
+    def milestones_active(self, within_component=None):
         """
         Returns only the milestones that are currently active (that is, those that
         either omit the start and end dates, or those with start and end dates where
@@ -142,12 +143,12 @@ class api:
         r.raise_for_status()
         return r.json()
         
-    def initial_state(self):
+    def state_initial(self):
         """Returns the first start state"""
         return self.initial_states()[0]
         
-    def initial_states(self):
-        """Returns the list of start states"""
+    def states_initial(self):
+        """Returns the list of all start states"""
         return self.states("Initial = YES")
     
     def state_transitions(self, state):
@@ -165,7 +166,7 @@ class api:
         r.raise_for_status()
         return r.json()
     
-    def search(self, predicate=None, savedQueryURL=None):
+    def problem_search(self, predicate=None, savedQueryURL=None):
         """
         Search for a set of problems given a predicate.
         Predicate is an NSPredicate formatted string.
@@ -186,7 +187,7 @@ class api:
         r.raise_for_status()
         return r.json()
         
-    def create_problem(self, problem):
+    def problem_create(self, problem):
         """
         Create a new problem based on the provided problem data.
         """
@@ -195,7 +196,7 @@ class api:
         r.raise_for_status()
         return r.json()
         
-    def update_problem(self, identifier, updates):
+    def problem_update(self, identifier, updates):
         """
         Update an existing problem.
         
@@ -210,7 +211,7 @@ class api:
         
         Example:
             # Close Problem #1
-            closed = api.states(predicate="name = 'Closed')[0]
+            closed = api.states(predicate="name = 'Closed'")[0]
             api.update_problem(1, { "state" : closed })
         """
         
@@ -218,6 +219,38 @@ class api:
         r.raise_for_status()
         return r.json()
         
+    def problem_set_keyword(self, identifier, keyword, value=None):
+        """
+        Update an existing problem and add/update a keyword.
+        
+        Args:
+            identifier (int): the problem identifier
+            keyword (string): the keyword to add
+            value (string): (Optional), the value to set the keyword to.
+            
+        Returns:
+            None
+        """
+        
+        r = requests.put(self.url("problems/%d/keywords/%s" % (identifier, quote(keyword, safe=""))), headers=self.post_headers(), json=value)
+        r.raise_for_status()
+    
+    def problem_delete_keyword(self, identifier, keyword):
+        """
+        Update an existing problem and remove a keyword.
+        
+        Args:
+            identifier (int): the problem identifier
+            keyword (string): the existing keyword to remove
+        
+        Returns:
+            None
+        """
+        
+        r = requests.delete(self.url("problems/%d/keywords/%s" % (identifier, quote(keyword, safe=""))), headers=self.headers())
+        r.raise_for_status()
+    
+    
         
 def _obj_id(obj):
         if isinstance(obj, str):
