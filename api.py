@@ -1,9 +1,3 @@
-"""
-Provides a high level interface to the Ship issue tracking REST scripting API.
-For additional documentation, please refer to 
-https://www.realartists.com/docs/api/index.html
-"""
-
 import sys
 import os
 import requests
@@ -15,7 +9,9 @@ except:
 
 class Api:
     """
-    Encapsulates all interactions with the Ship API.
+    Provides an interface to the Ship issue tracking REST scripting API.
+    For additional documentation, please refer to 
+    https://www.realartists.com/docs/api/index.html
     """
 
     def __init__(self, token=None, dry_run=False, server="https://api.realartists.com"):

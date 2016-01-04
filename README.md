@@ -1,2 +1,2 @@
-# shipapi
-Python wrapper library for the Ship API
+# shippy
+Python interface to the Ship issue tracking system.
