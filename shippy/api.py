@@ -28,25 +28,16 @@ class Api:
         self.server = server
         self.dry_run = dry_run
         if token is not None:
-            self.token = token
+            self.setToken(token)
         else:
-            self.token = os.getenv("SHIP_API_TOKEN")
+            self.setToken(os.getenv("SHIP_API_TOKEN"))
             if self.token is None:
                 raise Exception("Cannot find SHIP_API_TOKEN in environment. We need this.")
-        
-    @property
-    def token(self):
-        return self._token
-        
-    @token.setter
-    def token(self, value):
+                
+    def setToken(self, value):
         if value is not None and not value.startswith("Ship "):
             value = "Ship %s" % (value)
-        self._token = value
-    
-    @token.deleter
-    def token(self):
-        del self._token
+        self.token = value
     
     def _url(self, endpoint):
         return "%s/api/%s/%s" % (self.server, self.API_VERSION, endpoint)
