@@ -33,6 +33,20 @@ class Api:
             self.token = os.getenv("SHIP_API_TOKEN")
             if self.token is None:
                 raise Exception("Cannot find SHIP_API_TOKEN in environment. We need this.")
+        
+    @property
+    def token(self):
+        return self._token
+        
+    @token.setter
+    def token(self, value):
+        if value is not None and not value.startswith("Ship "):
+            value = "Ship %s" % (value)
+        self._token = value
+    
+    @token.deleter
+    def token(self):
+        del self._token
     
     def _url(self, endpoint):
         return "%s/api/%s/%s" % (self.server, self.API_VERSION, endpoint)
