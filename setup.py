@@ -10,4 +10,5 @@ setup(
   download_url = 'https://github.com/realartists/shippy/tarball/0.1',
   keywords = [], # arbitrary keywords
   classifiers = [],
+  install_requires=['requests']
 )
