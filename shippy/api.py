@@ -196,12 +196,15 @@ class Api:
         """
         return self._get("problems/%d" % identifier).json()
     
-    def problem_search(self, predicate=None, savedQueryURL=None):
+    def problem_search(self, predicate=None, savedQueryURL=None, includeDetail=False):
         """
         Search for a set of problems given a predicate.
-        Predicate is an NSPredicate formatted string.
-        SavedQueryURL is a query URL copied from the Ship client like this: ship://Query/2Kk8ww70TvWEyVO3bzYpkQ <Enhance!>
+        
+        Args:
+          predicate (string): an NSPredicate formatted string.
+          savedQueryURL (string): a query URL copied from the Ship client like this: ship://Query/2Kk8ww70TvWEyVO3bzYpkQ <Enhance!>
             You can copy a query URL in the Ship client app by selecting a saved query and right (ctrl) clicking and choosing Copy Query URL.
+          includeDetail (boolean): Whether or not to include full problem detail or just summary info. Defaults to False.          
         """
         
         params = {}
@@ -212,6 +215,9 @@ class Api:
         else:
             raise Error("Either predicate or savedQueryURL is required to do a search")
                     
+        if includeDetail:
+          params["includeDetail"] = "true"
+          
         return self._get("problems/search", params=params).json()
         
     def problem_create(self, problem):
